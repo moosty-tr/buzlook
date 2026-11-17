@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Buzlook\AdminSession;
+use Buzlook\Controller\AdminController;
 use Buzlook\Controller\ApiController;
 use Buzlook\Controller\HomeController;
 use Buzlook\Controller\LabelController;
@@ -51,11 +53,25 @@ $clientKey = RateLimiter::clientKey($_SERVER, $config['client_ip_header']);
 $home = new HomeController($session, $view);
 $labels = new LabelController($tags, $items, $session, $photos, $voices, $rateLimiter, $view, $config, $clientKey);
 $api = new ApiController($tags, $config, $rateLimiter, $clientKey);
+$adminSession = new AdminSession($config['api_token_hash'] ?? null);
+$admin = new AdminController($pdo, $tags, $photos, $voices, $rateLimiter, $adminSession, $view, $config, $clientKey);
 
 $router = new Router();
 $router->get('/', [$home, 'show']);
 $router->post('/logout', [$labels, 'logout']);
 $router->get('/export/labels', [$labels, 'exportLabels']);
+
+// Admin dashboard & actions (token cookie).
+$router->get('/admin', [$admin, 'show']);
+$router->post('/admin/login', [$admin, 'login']);
+$router->post('/admin/logout', [$admin, 'logout']);
+$router->post('/admin/tags/batch', [$admin, 'generateBatch']);
+$router->post('/admin/tags/bulk', [$admin, 'bulkAction']);
+$router->post('/admin/tags/inspect-action', [$admin, 'inspectAction']);
+$router->post('/admin/maintenance/purge-inactive', [$admin, 'purgeInactive']);
+$router->post('/admin/maintenance/clean-orphans', [$admin, 'cleanOrphans']);
+$router->post('/admin/rate-limits/clear', [$admin, 'clearRateLimits']);
+$router->get('/admin/backup/database', [$admin, 'downloadBackup']);
 
 // Admin API (bearer token).
 $router->post('/api/v1/tags/generate', [$api, 'generate']);

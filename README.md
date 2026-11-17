@@ -42,9 +42,32 @@ Every page has a **Scan label** button:
 | POST | `/{code}/consume` | Mark the label's item as consumed |
 | GET | `/export/labels` | JSON list of the logged-in freezer's labels for the client-side PNG/ZIP exporter |
 | POST | `/logout` | Forget the freezer in this browser |
+| GET | `/admin` | Admin dashboard (overview, batch generator & ZIP/PDF/CSV downloads, bulk register/unregister, label inspector, inactivity report & purge, rate-limit clear, DB backup) |
 
 `{code}` is Base58 (no `0 O I l`), 6 characters by default (`code_length` in config). Any length from 1 to 64 characters
 is accepted, so longer codes can be introduced later without breaking printed ones.
+
+## Admin Dashboard (`/admin`)
+
+Sign in at `/admin` using the same admin token created by `php bin/create-api-token.php`.
+
+- **Overview & Storage:** Counts of registered, untyped (free stock), freezer, food, and disabled labels; active and
+  consumed item counts; `uploads/` disk usage (with one-click orphan file cleanup); SQLite DB size and one-click
+  `.sqlite` backup download.
+- **Batch Label Generator & Downloads:** Generate $N$ codes (either **Created & Registered** immediately or **Generated
+  Only / Unregistered** for pre-printed rolls) and download them directly in the browser as:
+  - **ZIP of PNGs:** Individual `<code>.png` files with the QR code and only the human-readable code underneath.
+  - **A4 PDF Grid:** Vector multi-page PDF with an invisible grid (default **Landscape A4, 8 columns × 4 rows**),
+    with adjustable columns, rows, orientation, page margins, and optional light cut lines.
+  - **2-Column CSV (`url,code`):** Ready for roll/label printing software or for bulk registration later.
+- **Bulk Register / Unregister:** Paste codes/URLs or upload a 2-column CSV to register/enable or unregister/disable
+  labels in bulk.
+- **Single Label Inspector:** Look up or scan any code to see its status, type, parent freezer, active item, created
+  timestamp, and `last_scan_at`, and enable, disable, or reset it back to untyped.
+- **Inactive Labels Report (Last $N$ days, default $N = 730$):** Shows total registered codes not scanned in the last
+  $N$ days (broken down into claimed labels vs. untyped shelf stock vs. never-scanned codes), lists abandoned freezers,
+  and lets you purge inactive freezers ($> N$ days) along with their media files.
+- **Rate-Limit Blocks:** Lists currently blocked client IPs and lets you clear all blocks with one click.
 
 ## Admin API
 

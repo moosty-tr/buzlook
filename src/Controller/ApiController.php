@@ -31,7 +31,7 @@ final class ApiController
     public function generate(): void
     {
         $body = $this->authenticatedBody();
-        $codes = $this->generateUniqueCodes($this->requestedCount($body), $this->requestedLength($body));
+        $codes = $this->tags->generateUniqueCodes($this->requestedCount($body), $this->requestedLength($body));
 
         $this->json(200, ['count' => count($codes), 'tags' => $this->describe($codes)]);
     }
@@ -40,7 +40,7 @@ final class ApiController
     public function create(): void
     {
         $body = $this->authenticatedBody();
-        $codes = $this->generateUniqueCodes($this->requestedCount($body), $this->requestedLength($body));
+        $codes = $this->tags->generateUniqueCodes($this->requestedCount($body), $this->requestedLength($body));
         $this->tags->register($codes);
 
         $this->json(201, ['count' => count($codes), 'tags' => $this->describe($codes)]);
@@ -172,29 +172,6 @@ final class ApiController
         }
 
         return array_map('strval', array_keys($unique));
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function generateUniqueCodes(int $count, int $length): array
-    {
-        $codes = [];
-        while (count($codes) < $count) {
-            $candidates = [];
-            while (count($candidates) + count($codes) < $count) {
-                $candidates[CodeGenerator::generate($length)] = true;
-            }
-            $candidates = array_diff(array_keys($candidates), array_keys($codes));
-            $taken = array_flip($this->tags->existingCodes($candidates));
-            foreach ($candidates as $candidate) {
-                if (!isset($taken[$candidate])) {
-                    $codes[$candidate] = true;
-                }
-            }
-        }
-
-        return array_map('strval', array_keys($codes));
     }
 
     /**

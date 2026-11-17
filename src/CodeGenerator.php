@@ -18,8 +18,8 @@ final class CodeGenerator
     public const MIN_LENGTH = 4;
     public const MAX_LENGTH = 64;
 
-    /** Codes that would clash with real directories of the web root. */
-    private const RESERVED = ['assets', 'uploads', 'data', 'src', 'bin', 'templates'];
+    /** Codes that would clash with real directories or routes of the web root. */
+    private const RESERVED = ['assets', 'uploads', 'data', 'src', 'bin', 'templates', 'lang', 'admin', 'logout', 'export'];
 
     public static function isValid(string $code): bool
     {

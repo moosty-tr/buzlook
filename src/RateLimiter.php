@@ -61,6 +61,37 @@ final class RateLimiter
         return max(0, $blockedUntil - time());
     }
 
+    /**
+     * Currently blocked keys with their remaining block duration.
+     *
+     * @return list<array{key: string, blocked_until: int, remaining_seconds: int}>
+     */
+    public function activeBlocks(): array
+    {
+        $now = time();
+        $statement = $this->pdo->prepare(
+            'SELECT key, blocked_until FROM rate_limits WHERE blocked_until > :now ORDER BY blocked_until DESC'
+        );
+        $statement->execute(['now' => $now]);
+
+        $blocks = [];
+        foreach ($statement->fetchAll() as $row) {
+            $until = (int) $row['blocked_until'];
+            $blocks[] = [
+                'key' => (string) $row['key'],
+                'blocked_until' => $until,
+                'remaining_seconds' => max(0, $until - $now),
+            ];
+        }
+
+        return $blocks;
+    }
+
+    public function clearAll(): int
+    {
+        return (int) $this->pdo->exec('DELETE FROM rate_limits');
+    }
+
     public function recordFailure(string $key, int $maxFailures, int $windowSeconds, int $blockSeconds): void
     {
         $now = time();
