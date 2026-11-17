@@ -1,0 +1,5 @@
+/data/*.sqlite*
+/uploads/*
+!/uploads/.htaccess
+!/uploads/.gitkeep
+/config.local.php

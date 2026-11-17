@@ -1,0 +1,13 @@
+RewriteEngine On
+
+# Pass the Authorization header through to PHP (Apache mod_php/CGI drop it otherwise); used by /api/.
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Never expose internal directories (must come before the static file rule).
+RewriteRule ^(src|templates|data|bin|lang)/ - [F,L]
+RewriteRule ^config(\.local)?\.php$ - [F,L]
+
+# Serve existing static files (assets, uploads) directly; route everything else to index.php.
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+RewriteRule ^ index.php [L]
